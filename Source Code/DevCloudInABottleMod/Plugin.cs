@@ -22,6 +22,7 @@ namespace DevCloudInABottleMod
 
         /*Dynamic mod enabling/disabling*/
         static bool modActive = false; // is the mod active
+        static bool inModLobby = false; // is the player in a modded lobby
 
         /*Keybind*/
         static bool canDoubleJump = true; // can the player use the double jump ability
@@ -32,6 +33,10 @@ namespace DevCloudInABottleMod
             Utilla.Events.GameInitialized += OnGameInitialized;
             bottle.SetActive(true);
             particleFolder.SetActive(true);
+            if (inModLobby)
+            {
+                modActive = true;
+            }
         }
 
         void OnDisable()
@@ -74,8 +79,9 @@ namespace DevCloudInABottleMod
             if (isPrimaryDown && canDoubleJump && modActive)
             {
                 canDoubleJump = false;
+                float JumpHeightMonke = 10;
                 Rigidbody PlayerRigidbody = GorillaLocomotion.Player.Instance.GetComponent<Rigidbody>();
-                PlayerRigidbody.AddForce(new Vector3(0f, 10f, 0f), ForceMode.VelocityChange);
+                PlayerRigidbody.AddForce(new Vector3(0f, JumpHeightMonke, 0f), ForceMode.VelocityChange);
                 GameObject particles = GameObject.Instantiate(bottle);
                 GameObject.Destroy(particles.transform.GetChild(0).gameObject);
                 particles.transform.GetChild(1).gameObject.SetActive(true);
@@ -91,6 +97,7 @@ namespace DevCloudInABottleMod
         [ModdedGamemodeJoin]
         public void OnJoin(string gamemode)
         {
+            inModLobby = true;
             modActive = this.enabled; // never knew that existed (this.enabled)
             particleFolder.SetActive(true);
         }
@@ -98,6 +105,7 @@ namespace DevCloudInABottleMod
         [ModdedGamemodeLeave]
         public void OnLeave(string gamemode)
         {
+            inModLobby = false;
             modActive = false; // no cheating
             particleFolder.SetActive(false);
         }

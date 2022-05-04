@@ -8,6 +8,6 @@ namespace DevCloudInABottleMod
     {
         public const string GUID = "com.dev9998.gorillatag.devcloudinabottlemod";
         public const string Name = "DevCloudInABottleMod";
-        public const string Version = "1.0.0";
+        public const string Version = "1.0.1";
     }
 }
