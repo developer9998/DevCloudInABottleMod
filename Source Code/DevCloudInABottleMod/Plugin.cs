@@ -15,6 +15,8 @@ namespace DevCloudInABottleMod
     [ModdedGamemode]
     public class Plugin : BaseUnityPlugin
     {
+        /*Mod under the MIT license, if you reproduce please credit*/
+
         /*Assetloading*/
         public static readonly string assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         public static GameObject bottle; // the cloud in a bottle gameobject
@@ -62,6 +64,7 @@ namespace DevCloudInABottleMod
             bottle.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
             bottle.transform.localScale = new Vector3(1f, 1f, 1f);
             bottle.name = "BottleParticles";
+            bottle.SetActive(modActive);
         }
 
         void Update()
