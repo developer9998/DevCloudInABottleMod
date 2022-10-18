@@ -23,17 +23,14 @@ namespace DevCloudInABottleMod
         static GameObject particleFolder; // where the particles are placed
 
         /*Dynamic mod enabling/disabling*/
-        static bool modActive = false; // is the mod active
         static bool inModLobby = false; // is the player in a modded lobby
 
         /*Keybind*/
         static bool canDoubleJump = true; // can the player use the double jump ability
-        bool isPrimaryDown; // is the primary button down
 
         void Start()
         {
-            if (bottle == null)
-                Events.GameInitialized += OnGameInitialized;
+            Events.GameInitialized += OnGameInitialized;
         }
 
         void OnEnable()
@@ -56,13 +53,16 @@ namespace DevCloudInABottleMod
 
         void OnGameInitialized(object sender, EventArgs e)
         {
+            if (bottle != null)
+                return;
+
             particleFolder = new GameObject();
             particleFolder.name = "CloudInABottle_Particles";
 
             AssetBundle bundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("DevCloudInABottleMod.Assets.cloud"));
             bottle = Instantiate(bundle.LoadAsset<GameObject>("bottle"));
 
-            GameObject rightHand = GorillaTagger.Instance.rightHandTransform.parent.GetChild(0).gameObject;
+            GameObject rightHand = GorillaTagger.Instance.offlineVRRig.rightHandTransform.parent.Find("palm.01.R").gameObject;
 
             bottle.transform.SetParent(rightHand.transform, false);
 
@@ -71,18 +71,20 @@ namespace DevCloudInABottleMod
             bottle.transform.localScale = new Vector3(1f, 1f, 1f);
 
             bottle.name = "BottleParticles";
+            bottle.SetActive(enabled);
+            particleFolder.SetActive(enabled);
         }
 
-        void Update()
+        void FixedUpdate()
         {
-            if (!inModLobby || !enabled || bottle == null || particleFolder == null)
+            if (!inModLobby)
                 return;
 
             if (GorillaLocomotion.Player.Instance.IsHandTouching(false) || GorillaLocomotion.Player.Instance.IsHandTouching(true))
                 if (!canDoubleJump)
                     canDoubleJump = true;
 
-            InputDevices.GetDeviceAtXRNode(XRNode.RightHand).TryGetFeatureValue(CommonUsages.primaryButton, out isPrimaryDown);
+            InputDevices.GetDeviceAtXRNode(XRNode.RightHand).TryGetFeatureValue(CommonUsages.primaryButton, out bool isPrimaryDown);
 
             if (isPrimaryDown && canDoubleJump)
             {

@@ -8,7 +8,7 @@ public class RemoveOverTime : MonoBehaviour
     // jesus fucking christ what the actual fuck is this
     void Start()
     {
-        cooldownTime = 0.75f;
+        cooldownTime = 5f;
         cooldownTime = Time.time + cooldownTime;
     }
     void Update()
