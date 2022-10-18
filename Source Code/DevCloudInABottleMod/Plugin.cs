@@ -30,87 +30,84 @@ namespace DevCloudInABottleMod
         static bool canDoubleJump = true; // can the player use the double jump ability
         bool isPrimaryDown; // is the primary button down
 
+        void Start()
+        {
+            if (bottle == null)
+                Events.GameInitialized += OnGameInitialized;
+        }
+
         void OnEnable()
         {
-            Utilla.Events.GameInitialized += OnGameInitialized;
-            bottle.SetActive(true);
-            particleFolder.SetActive(true);
-            if (inModLobby)
+            if (bottle != null && particleFolder != null)
             {
-                modActive = true;
+                bottle.SetActive(enabled);
+                bottle.SetActive(enabled);
             }
         }
 
         void OnDisable()
         {
-            Utilla.Events.GameInitialized -= OnGameInitialized;
-            bottle.SetActive(false);
-            particleFolder.SetActive(false);
+            if (bottle != null && particleFolder != null)
+            {
+                bottle.SetActive(enabled);
+                bottle.SetActive(enabled);
+            }
         }
 
         void OnGameInitialized(object sender, EventArgs e)
         {
-            #pragma warning disable IDE0017 // Simplify object initialization
             particleFolder = new GameObject();
             particleFolder.name = "CloudInABottle_Particles";
 
-            Stream str = Assembly.GetExecutingAssembly().GetManifestResourceStream("DevCloudInABottleMod.Assets.cloud");
-            AssetBundle bundle = AssetBundle.LoadFromStream(str);
-            GameObject cloudinabottle = bundle.LoadAsset<GameObject>("bottle");
-            bottle = Instantiate(cloudinabottle);
-            GameObject rightHand = GameObject.Find("OfflineVRRig/Actual Gorilla/rig/body/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R");
+            AssetBundle bundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("DevCloudInABottleMod.Assets.cloud"));
+            bottle = Instantiate(bundle.LoadAsset<GameObject>("bottle"));
+
+            GameObject rightHand = GorillaTagger.Instance.rightHandTransform.parent.GetChild(0).gameObject;
+
             bottle.transform.SetParent(rightHand.transform, false);
+
             bottle.transform.localPosition = new Vector3(0f, 0f, 0f);
             bottle.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
             bottle.transform.localScale = new Vector3(1f, 1f, 1f);
+
             bottle.name = "BottleParticles";
-            bottle.SetActive(modActive);
         }
 
         void Update()
         {
-            if (GorillaLocomotion.Player.Instance.wasLeftHandTouching || GorillaLocomotion.Player.Instance.wasRightHandTouching) // much better than Instance.IsHandTouching()
-            {
-                if (!canDoubleJump && modActive)
-                {
+            if (!inModLobby || !enabled || bottle == null || particleFolder == null)
+                return;
+
+            if (GorillaLocomotion.Player.Instance.IsHandTouching(false) || GorillaLocomotion.Player.Instance.IsHandTouching(true))
+                if (!canDoubleJump)
                     canDoubleJump = true;
-                }
-            }
 
             InputDevices.GetDeviceAtXRNode(XRNode.RightHand).TryGetFeatureValue(CommonUsages.primaryButton, out isPrimaryDown);
 
-            if (isPrimaryDown && canDoubleJump && modActive)
+            if (isPrimaryDown && canDoubleJump)
             {
                 canDoubleJump = false;
+
                 float JumpHeightMonke = 10;
+
                 Rigidbody PlayerRigidbody = GorillaLocomotion.Player.Instance.GetComponent<Rigidbody>();
                 PlayerRigidbody.AddForce(new Vector3(0f, JumpHeightMonke, 0f), ForceMode.VelocityChange);
-                GameObject particles = GameObject.Instantiate(bottle);
-                GameObject.Destroy(particles.transform.GetChild(0).gameObject);
+
+                GameObject particles = Instantiate(bottle);
+                Destroy(particles.transform.GetChild(0).gameObject);
+
                 particles.transform.GetChild(1).gameObject.SetActive(true);
                 particles.transform.position = bottle.transform.parent.transform.position;
                 particles.transform.rotation = bottle.transform.parent.transform.rotation;
                 particles.transform.rotation = bottle.transform.parent.transform.rotation;
                 particles.transform.localScale = bottle.transform.parent.transform.localScale;
+
                 particles.transform.SetParent(particleFolder.transform, true);
                 particles.AddComponent<RemoveOverTime>(); // be glad i put this in
             }
         }
 
-        [ModdedGamemodeJoin]
-        public void OnJoin(string gamemode)
-        {
-            inModLobby = true;
-            modActive = this.enabled; // never knew that existed (this.enabled)
-            particleFolder.SetActive(true);
-        }
-
-        [ModdedGamemodeLeave]
-        public void OnLeave(string gamemode)
-        {
-            inModLobby = false;
-            modActive = false; // no cheating
-            particleFolder.SetActive(false);
-        }
+        [ModdedGamemodeJoin] public void OnJoin() => inModLobby = true;
+        [ModdedGamemodeLeave] public void OnLeave() => inModLobby = false;
     }
 }

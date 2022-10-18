@@ -4,21 +4,19 @@ using UnityEngine;
 
 public class RemoveOverTime : MonoBehaviour
 {
-    private static int cooldownTime = 0;
+    private float cooldownTime = 0;
+    // jesus fucking christ what the actual fuck is this
     void Start()
     {
-        cooldownTime = 750;
+        cooldownTime = 0.75f;
+        cooldownTime = Time.time + cooldownTime;
     }
     void Update()
     {
         //my (dev9998)'s special way of doing stupid cooldown stuff
-        if (cooldownTime == 0)
-        {
-            GameObject.Destroy(gameObject);
-        }
-        else
-        {
-            cooldownTime--;
-        }
+        // okay fuck this
+
+        if (Time.time > cooldownTime)
+            Destroy(gameObject);
     }
 }
